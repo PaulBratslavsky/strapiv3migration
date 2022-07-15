@@ -1,67 +1,74 @@
-module.exports = {
-  find: async (ctx) => {
-    let restaurants;
+`use strict`;
 
-    if (ctx.query._q) {
-      restaurants = await strapi.api.restaurant.services.restaurant.search(ctx.query);
-    } else {
-      restaurants = await strapi.api.restaurant.services.restaurant.find(ctx.query);
-    }
+const { createCoreController } = require('@strapi/strapi').factories;
+module.exports = createCoreController('api::restaurant.restaurant');
 
-    restaurants = await Promise.all(
-      restaurants.map(async (restaurant) => {
-        restaurant.note = await strapi.api.review.services.review.average(restaurant.id);
 
-        return restaurant;
-      })
-    );
 
-    return restaurants;
-  },
+// module.exports = {
+//   find: async (ctx) => {
+//     let restaurants;
 
-  findOne: async (ctx) => {
-    const { id } = ctx.params;
-    let restaurant = await strapi.api.restaurant.services.restaurant.findOne({ id });
+//     if (ctx.query._q) {
+//       restaurants = await strapi.api.restaurant.services.restaurant.search(ctx.query);
+//     } else {
+//       restaurants = await strapi.api.restaurant.services.restaurant.find(ctx.query);
+//     }
 
-    if (!restaurant) {
-      return ctx.notFound();
-    }
+//     restaurants = await Promise.all(
+//       restaurants.map(async (restaurant) => {
+//         restaurant.note = await strapi.api.review.services.review.average(restaurant.id);
 
-    restaurant.note = await strapi.api.review.services.review.average(restaurant.id);
+//         return restaurant;
+//       })
+//     );
 
-    let noteDetails = await strapi
-      .query('review')
-      .model.query(function (qb) {
-        qb.where('restaurant', '=', restaurant.id);
-        qb.groupBy('note');
-        qb.select('note');
-        qb.count();
-      })
-      .fetchAll()
-      .then((res) => res.toJSON());
+//     return restaurants;
+//   },
 
-    restaurant.noteDetails = [];
+//   findOne: async (ctx) => {
+//     const { id } = ctx.params;
+//     let restaurant = await strapi.api.restaurant.services.restaurant.findOne({ id });
 
-    for (let i = 5; i > 0; i--) {
-      let detail = noteDetails.find((detail) => {
-        return detail.note === i;
-      });
+//     if (!restaurant) {
+//       return ctx.notFound();
+//     }
 
-      if (detail) {
-        detail = {
-          note: detail.note,
-          count: detail['count(*)'],
-        };
-      } else {
-        detail = {
-          note: i,
-          count: 0,
-        };
-      }
+//     restaurant.note = await strapi.api.review.services.review.average(restaurant.id);
 
-      restaurant.noteDetails.push(detail);
-    }
+//     let noteDetails = await strapi
+//       .query('review')
+//       .model.query(function (qb) {
+//         qb.where('restaurant', '=', restaurant.id);
+//         qb.groupBy('note');
+//         qb.select('note');
+//         qb.count();
+//       })
+//       .fetchAll()
+//       .then((res) => res.toJSON());
 
-    return restaurant;
-  }
-};
+//     restaurant.noteDetails = [];
+
+//     for (let i = 5; i > 0; i--) {
+//       let detail = noteDetails.find((detail) => {
+//         return detail.note === i;
+//       });
+
+//       if (detail) {
+//         detail = {
+//           note: detail.note,
+//           count: detail['count(*)'],
+//         };
+//       } else {
+//         detail = {
+//           note: i,
+//           count: 0,
+//         };
+//       }
+
+//       restaurant.noteDetails.push(detail);
+//     }
+
+//     return restaurant;
+//   }
+// };
