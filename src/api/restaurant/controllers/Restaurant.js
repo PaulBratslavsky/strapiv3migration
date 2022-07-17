@@ -1,9 +1,15 @@
 `use strict`;
 
 const { createCoreController } = require('@strapi/strapi').factories;
-module.exports = createCoreController('api::restaurant.restaurant');
 
-
+// this logic would also have to be created in a custom QraphQL resolver
+module.exports = createCoreController('api::restaurant.restaurant', ({ strapi }) => ({
+  async find(ctx) {
+    const entity = await strapi.service('api::restaurant.restaurant').find(ctx);
+    const sanitizedEntity = await this.sanitizeOutput(entity, ctx);
+    return this.transformResponse(sanitizedEntity);
+  },
+}));
 
 // module.exports = {
 //   find: async (ctx) => {
